@@ -1,8 +1,8 @@
 export default (router, context) => {
   const { services, getSchema } = context;
   const { ItemsService } = services;
-  router.post("/auth/verify-email", async (req, res) => {
-    const { token, email } = req.body;
+  router.get("/auth/verify-email", async (req, res) => {
+    const { token, email } = req.query;
 
     if (!token || !email) {
       return res.status(400).json({
