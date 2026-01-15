@@ -160,7 +160,7 @@ export default (router, context) => {
           </div>
           <div style="padding: 40px; background: #f7fafc">
             <h2 style="color: #2d3748; margin-bottom: 20px">
-              Bienvenue ${$user.first_name} ${$user.last_name} !
+              Bienvenue ${user.first_name} ${user.last_name} !
             </h2>
             <p style="color: #4a5568; font-size: 16px; line-height: 1.6">
               Nous avons re&ccedil;u une demande de r&eacute;initialisation de votre
@@ -174,7 +174,7 @@ export default (router, context) => {
               ou en cliquant sur le lien suivant :
             </p>
             <div style="text-align: center; margin: 30px 0">
-              <a href="${env.DASHBOARD_URL}/authentication/verify-forgotten-password?token=${token}&email=${$user.email}">Lien de r&eacute;initialisation</a>
+              <a href="${env.DASHBOARD_URL}/authentication/verify-forgotten-password?token=${token}&email=${user.email}">Lien de r&eacute;initialisation</a>
             </div>
             <p style="color: #718096; font-size: 14px; margin-top: 30px">
               Si vous n'avez pas cr&eacute;&eacute; de compte, vous pouvez ignorer cet
