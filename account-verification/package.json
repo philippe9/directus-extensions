@@ -1,6 +1,6 @@
 {
 	"name": "account-verification",
-	"description": "Please enter a description for your extension",
+	"description": "Client endpoint for account email verification in Directus",
 	"icon": "extension",
 	"version": "1.0.0",
 	"keywords": [
