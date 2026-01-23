@@ -4,7 +4,8 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
   // });
   action("patientreference.items.create", async (meta, context) => {
     console.log("Item created!");
-    console.log(payload);
+    console.log(meta);
+    const payloadData = meta.payload;
     // const { services, getSchema, env, database } = context;
     const { ItemsService, MailService } = services;
     try {
