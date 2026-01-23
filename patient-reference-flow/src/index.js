@@ -3,9 +3,10 @@ export default ({ action }) => {
   // 	console.log('Creating Item!');
   // });
 
-  action("patientreference.items.create", async (payload, meta, context) => {
+  action("patientreference.items.create", async (payload, context) => {
     console.log("Item created!");
     console.log(payload);
+    const payloadData = payload.payload;
     const { services, getSchema, env, database } = context;
     const { ItemsService, MailService } = services;
     try {
@@ -18,7 +19,7 @@ export default ({ action }) => {
       // Trouver les utilisateurs cible
       const users = await usersService.readByQuery({
         filter: {
-          health_center: { _eq: payload.referencedcenter },
+          health_center: { _eq: payloadData.referedcenter },
           _or: [
             { role: { _eq: "82fcd0bf-e8a1-4c0f-871d-bc14620a444a" } },
             { role: { _eq: "8be2755a-b306-427b-ad6c-1509b422abe5" } },
@@ -40,11 +41,12 @@ export default ({ action }) => {
         await notificationsService.createOne({
           recipient: user.id,
           subject: "Nouvelle référence de patient",
-          message: `Référence du patient ${payload.householdmemberid.first_name} a été créée pour votre centre de santé.`,
+          message: `Référence de patient a été créée pour votre centre de santé.`,
           collection: "patientreference",
-          item: payload.id,
+          item: payload.key,
           status: "inbox",
         });
+        // ${payload.householdmemberid.first_name} ${payload.householdmemberid.last_name} !
         const htmlTemplate = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto">
               <div
@@ -58,7 +60,7 @@ export default ({ action }) => {
               </div>
               <div style="padding: 40px; background: #f7fafc">
                 <h2 style="color: #2d3748; margin-bottom: 20px">
-                  Reference du client ${payload.householdmemberid.first_name} ${payload.householdmemberid.last_name} !
+                  Reference du client 
                 </h2>
                 <p style="color: #4a5568; font-size: 16px; line-height: 1.6">
                   Une nouvelle r&eacute;f&eacute;rence de patient a &eacute;t&eacute; cr&eacute;&eacute;e pour votre centre de sant&eacute;.
@@ -67,7 +69,7 @@ export default ({ action }) => {
                   ou en cliquant sur le lien suivant :
                 </p>
                 <div style="text-align: center; margin: 30px 0">
-                  <h3><a href="${env.DASHBOARD_URL}/admin/patient/${payload.householdmemberid.id}">Lien vers le client</a></h3>
+                  <h3><a href="${env.DASHBOARD_URL}/admin/patient/${payloadData.householdmemberid}">Lien vers le client</a></h3>
                 </div>
                 
                 <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0" />
