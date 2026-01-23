@@ -26,9 +26,7 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
         },
       });
       if (!users || users.length === 0) {
-        return res.status(400).json({
-          error: "Aucun utilisateur trouvé pour le centre de santé référencé.",
-        });
+        console.log("Aucun utilisateur trouvé pour le centre de santé référé.");
       }
       // Créer les notifications
       const notificationsService = new ItemsService("directus_notifications", {
@@ -90,10 +88,7 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
       return payloadData;
     } catch (error) {
       console.error("Erreur référence email:", error);
-      res.status(500).json({
-        message: "Erreur serveur",
-        error,
-      });
+      throw error;
     }
   });
 };
