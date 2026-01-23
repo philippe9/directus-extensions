@@ -1,17 +1,17 @@
-export default ({ action, context }) => {
+export default ({ action }, { services, exceptions, database, getSchema, env }) => {
   // filter('items.create', () => {
   // 	console.log('Creating Item!');
   // });
-  action("patientreference.items.create", async (payload) => {
+  action("patientreference.items.create", async (meta, context) => {
     console.log("Item created!");
     console.log(payload);
-    const { services, getSchema, env, database } = context;
-  const { ItemsService, MailService } = services;
+    // const { services, getSchema, env, database } = context;
+    const { ItemsService, MailService } = services;
     try {
       const schema = await getSchema();
       const usersService = new ItemsService("directus_users", {
         schema,
-        accountability: null,
+        accountability: context.accountability || null,
       });
 
       // Trouver les utilisateurs cible
@@ -41,7 +41,7 @@ export default ({ action, context }) => {
           subject: "Nouvelle référence de patient",
           message: `Référence de patient a été créée pour votre centre de santé.`,
           collection: "patientreference",
-          item: payload.key,
+          item: meta.key,
           status: "inbox",
         });
         // ${payload.householdmemberid.first_name} ${payload.householdmemberid.last_name} !
@@ -86,7 +86,7 @@ export default ({ action, context }) => {
 
         console.log(`Email de référence envoyé à ${user.email}`);
       }
-      return payload;
+      return payloadData;
     } catch (error) {
       console.error("Erreur référence email:", error);
       res.status(500).json({
