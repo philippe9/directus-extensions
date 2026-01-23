@@ -1,16 +1,13 @@
-export default ({ action }) => {
+export default ({ action, context }) => {
   // filter('items.create', () => {
   // 	console.log('Creating Item!');
   // });
-
+    const { services, getSchema, env, database } = context;
+    const { ItemsService, MailService } = services;
   action("patientreference.items.create", async (payload, context) => {
     console.log("Item created!");
     console.log(payload);
-    const payloadData = payload.payload;
-    console.log(context)
-    console.log(services)
-    const { services, getSchema, env, database } = context;
-    const { ItemsService, MailService } = services;
+
     try {
       const schema = await getSchema();
       const usersService = new ItemsService("directus_users", {
