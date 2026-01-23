@@ -7,6 +7,8 @@ export default ({ action }) => {
     console.log("Item created!");
     console.log(payload);
     const payloadData = payload.payload;
+    console.log(context)
+    console.log(services)
     const { services, getSchema, env, database } = context;
     const { ItemsService, MailService } = services;
     try {
