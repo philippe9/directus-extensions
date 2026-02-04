@@ -36,7 +36,7 @@ export default (router, context) => {
 
       // Activer l'utilisateur
       await usersService.updateOne(user.id, {
-        status: "active",
+        email_verified: false,
         verification_token: null,
       });
 
