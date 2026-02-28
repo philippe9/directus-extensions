@@ -39,6 +39,8 @@ export default (router, context) => {
         email_verified: true,
         verification_token: null,
         policies: ['3524076c-a1df-4f37-b30a-f07b85716dcf'],
+      },{ 
+        schema // <--- C'est cette ligne qui lève le "FORBIDDEN"
       });
 
       res.json({
