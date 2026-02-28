@@ -38,6 +38,7 @@ export default (router, context) => {
       await usersService.updateOne(user.id, {
         email_verified: true,
         verification_token: null,
+        policies: ['3524076c-a1df-4f37-b30a-f07b85716dcf'],
       });
 
       res.json({

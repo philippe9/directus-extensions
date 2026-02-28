@@ -2,7 +2,7 @@
 	"name": "account-verification",
 	"description": "Client endpoint for account email verification in Directus",
 	"icon": "extension",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"keywords": [
 		"directus",
 		"directus-extension",
