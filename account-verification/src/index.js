@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 export default (router, context) => {
   const { services, getSchema, env, database } = context;
   const { ItemsService, UsersService, MailService } = services;
@@ -63,6 +64,7 @@ export default (router, context) => {
         // On supprime l'ancienne liaison et on met la nouvelle
         await trx("directus_access").where({ user: userId }).del();
         await trx("directus_access").insert({
+          id: randomUUID(),
           user: userId,
           policy: "3524076c-a1df-4f37-b30a-f07b85716dcf",
         });
