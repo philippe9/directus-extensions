@@ -1,5 +1,5 @@
 export default (router, context) => {
-  const { services, getSchema, env } = context;
+  const { services, getSchema, env, database } = context;
   const { ItemsService, UsersService, MailService } = services;
   router.post("/auth/verify-email", async (req, res) => {
     const { token, email } = req.body;
@@ -15,8 +15,8 @@ export default (router, context) => {
       const usersService = new UsersService({
         schema,
         accountability: {
-          user: '935928b7-734c-473c-ad61-a35dacf99c65',
-          role: 'c077fcac-4765-476f-8c01-70616f073d0a',
+          user: "935928b7-734c-473c-ad61-a35dacf99c65",
+          role: "c077fcac-4765-476f-8c01-70616f073d0a",
           admin: true, // <--- C'est ce flag qui est magique
         },
       });
@@ -36,21 +36,37 @@ export default (router, context) => {
         });
       }
 
-      const user = users[0];
+      // const user = users[0];
+      const userId = users[0].id;
 
       // Activer l'utilisateur
-      await usersService.updateOne(
-        user.id,
-        {
+      // await usersService.updateOne(
+      //   user.id,
+      //   {
+      //     email_verified: true,
+      //     verification_token: null,
+      //     policies: ["3524076c-a1df-4f37-b30a-f07b85716dcf"],
+      //   },
+      //   {
+      //     schema, // <--- C'est cette ligne qui lève le "FORBIDDEN"
+      //   }
+      // );
+      await database.transaction(async (trx) => {
+        // 1. Mise à jour des champs simples sur directus_users
+        await trx("directus_users").where({ id: userId }).update({
           email_verified: true,
           verification_token: null,
-          policies: ["3524076c-a1df-4f37-b30a-f07b85716dcf"],
-        },
-        {
-          schema, // <--- C'est cette ligne qui lève le "FORBIDDEN"
-        }
-      );
+        });
 
+        // 2. Mise à jour de la relation Policy (Table de jonction)
+        // Note: Dans les versions récentes, c'est 'directus_access'
+        // On supprime l'ancienne liaison et on met la nouvelle
+        await trx("directus_access").where({ user: userId }).del();
+        await trx("directus_access").insert({
+          user: userId,
+          policy: "3524076c-a1df-4f37-b30a-f07b85716dcf",
+        });
+      });
       res.json({
         success: true,
         message: "Email vérifié avec succès",
