@@ -1,6 +1,6 @@
 export default (router, context) => {
   const { services, getSchema, env } = context;
-  const { ItemsService, MailService } = services;
+  const { ItemsService, UsersService, MailService } = services;
   router.post("/auth/verify-email", async (req, res) => {
     const { token, email } = req.body;
 
@@ -12,10 +12,7 @@ export default (router, context) => {
 
     try {
       const schema = await getSchema();
-      const usersService = new ItemsService("directus_users", {
-        schema,
-        accountability: null,
-      });
+      const usersService = new UsersService({ schema, accountability: null });
 
       // Trouver l'utilisateur avec ce token
       const users = await usersService.readByQuery({
