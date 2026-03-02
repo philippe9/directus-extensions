@@ -12,7 +12,14 @@ export default (router, context) => {
 
     try {
       const schema = await getSchema();
-      const usersService = new UsersService({ schema, accountability: null });
+      const usersService = new UsersService({
+        schema,
+        accountability: {
+          user: '935928b7-734c-473c-ad61-a35dacf99c65',
+          role: 'c077fcac-4765-476f-8c01-70616f073d0a',
+          admin: true, // <--- C'est ce flag qui est magique
+        },
+      });
 
       // Trouver l'utilisateur avec ce token
       const users = await usersService.readByQuery({
@@ -32,13 +39,17 @@ export default (router, context) => {
       const user = users[0];
 
       // Activer l'utilisateur
-      await usersService.updateOne(user.id, {
-        email_verified: true,
-        verification_token: null,
-        policies: ['3524076c-a1df-4f37-b30a-f07b85716dcf'],
-      },{ 
-        schema // <--- C'est cette ligne qui lève le "FORBIDDEN"
-      });
+      await usersService.updateOne(
+        user.id,
+        {
+          email_verified: true,
+          verification_token: null,
+          policies: ["3524076c-a1df-4f37-b30a-f07b85716dcf"],
+        },
+        {
+          schema, // <--- C'est cette ligne qui lève le "FORBIDDEN"
+        }
+      );
 
       res.json({
         success: true,
@@ -134,7 +145,7 @@ export default (router, context) => {
       }
 
       const user = users[0];
-      
+
       let token = "";
       const characters =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
