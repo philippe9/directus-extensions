@@ -1,26 +1,42 @@
 export default ({ action }, { services, exceptions, database, getSchema, env }) => {
   action("patientreference.items.create", async (meta, context) => {
-    console.log("Item created!");
-    console.log(meta);
+    console.log("[patientreference.items.create] Event received", {
+      key: meta?.key,
+      collection: meta?.collection,
+      event: meta?.event,
+    });
     const payloadData = meta.payload;
+    console.log("[patientreference.items.create] Payload extracted", {
+      referedcenter: payloadData?.referedcenter,
+      householdmemberid: payloadData?.householdmemberid,
+    });
     // const { services, getSchema, env, database } = context;
     const { ItemsService, MailService } = services;
     try {
       const schema = await getSchema();
+      console.log("[patientreference.items.create] Schema loaded");
       const usersService = new ItemsService("directus_users", {
         schema,
         accountability: context.accountability || null,
       });
-
+      //Poste de Santé de APECSY
+      const referenceCenter = payloadData.referedcenter;
+      console.log("[patientreference.items.create] Resolving recipients", {
+        referenceCenter,
+        targetRole: "8be2755a-b306-427b-ad6c-1509b422abe5",
+      });
       // Trouver les utilisateurs cible
       const users = await usersService.readByQuery({
         filter: {
-          health_center: { _eq: payloadData.referedcenter },
+          health_center: { _eq: referenceCenter },
           _or: [
-            { role: { _eq: "82fcd0bf-e8a1-4c0f-871d-bc14620a444a" } },
             { role: { _eq: "8be2755a-b306-427b-ad6c-1509b422abe5" } },
           ],
         },
+      });
+      console.log("[patientreference.items.create] Recipients query completed", {
+        recipientsCount: users?.length || 0,
+        recipientIds: (users || []).map((u) => u.id),
       });
       if (!users || users.length === 0) {
         console.log("Aucun utilisateur trouvé pour le centre de santé référé.");
@@ -30,15 +46,28 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
         schema,
         knex: database,
       });
+      console.log("[patientreference.items.create] Notification service ready", {
+        item: meta?.key,
+      });
 
       for (const user of users) {
-        await notificationsService.createOne({
+        console.log("[patientreference.items.create] Creating notification", {
+          recipient: user?.id,
+          recipientEmail: user?.email,
+          collection: "patientreference",
+          item: meta?.key,
+        });
+        const notificationId = await notificationsService.createOne({
           recipient: user.id,
           subject: "Nouvelle référence de patient",
           message: `Référence de patient a été créée pour votre centre de santé.`,
           collection: "patientreference",
           item: meta.key,
           status: "inbox",
+        });
+        console.log("[patientreference.items.create] Notification created", {
+          notificationId,
+          recipient: user?.id,
         });
         // ${payload.householdmemberid.first_name} ${payload.householdmemberid.last_name} !
         const htmlTemplate = `
@@ -74,6 +103,10 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
             </div>
           `;
         const mailService = new MailService({ schema, accountability: null });
+        console.log("[patientreference.items.create] Sending email", {
+          to: user?.email,
+          dashboardUrl: `${env.DASHBOARD_URL}/admin/patient/${payloadData.householdmemberid}`,
+        });
         await mailService.send({
           to: user.email,
           subject: "Nouvelle référence de patient - Plateforme Clinic O",
@@ -82,6 +115,10 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
 
         console.log(`Email de référence envoyé à ${user.email}`);
       }
+      console.log("[patientreference.items.create] Flow completed", {
+        item: meta?.key,
+        recipientsCount: users?.length || 0,
+      });
       return payloadData;
     } catch (error) {
       console.error("Erreur référence email:", error);
@@ -89,27 +126,58 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
     }
   });
   action("following.items.create", async (meta, context) => {
-    console.log("Item created!");
-    console.log(meta);
+    console.log("[following.items.create] Event received", {
+      key: meta?.key,
+      collection: meta?.collection,
+      event: meta?.event,
+    });
+    const ACSID = '59cfe258-dd36-424f-8952-8c930a7f5625';
+    const doctorID = 'ccb278ca-1a4f-4605-9962-cf1a8ccbfb84';
+    const ICPID = '8be2755a-b306-427b-ad6c-1509b422abe5';
     const payloadData = meta.payload;
+    console.log("[following.items.create] Payload extracted", {
+      referedcenter: payloadData?.referedcenter,
+      householdmemberid: payloadData?.householdmemberid,
+      type: payloadData?.type,
+    });
+    const REFERAL_TO_DOCTOR = 'REFERAL_TO_DOCTOR';
+    const COUNTER_REFERAL_TO_AC = 'COUNTER_REFERAL_TO_AC';
+    const COUNTER_REFERAL_TO_ICP = 'COUNTER_REFERAL_TO_ICP';
     // const { services, getSchema, env, database } = context;
     const { ItemsService, MailService } = services;
     try {
       const schema = await getSchema();
+      console.log("[following.items.create] Schema loaded");
       const usersService = new ItemsService("directus_users", {
         schema,
         accountability: context.accountability || null,
       });
-
+      const referenceCenter = payloadData.referedcenter;
+      let roleID = '';
+      if (payloadData.type === REFERAL_TO_DOCTOR) {
+        roleID = doctorID;
+      } else if (payloadData.type === COUNTER_REFERAL_TO_AC) {
+        roleID = ACSID;
+      } else if (payloadData.type === COUNTER_REFERAL_TO_ICP) {
+        roleID = ICPID;
+      }
+      console.log("[following.items.create] Recipient targeting resolved", {
+        referenceCenter,
+        roleID,
+        type: payloadData?.type,
+      });
       // Trouver les utilisateurs cible
       const users = await usersService.readByQuery({
         filter: {
-          health_center: { _eq: payloadData.referedwhere },
+          health_center: { _eq: referenceCenter },
           _or: [
-            { role: { _eq: "82fcd0bf-e8a1-4c0f-871d-bc14620a444a" } },
-            { role: { _eq: "8be2755a-b306-427b-ad6c-1509b422abe5" } },
+            { role: { _eq: roleID } },
           ],
         },
+      });
+      console.log("[following.items.create] Recipients query completed", {
+        recipientsCount: users?.length || 0,
+        recipientIds: (users || []).map((u) => u.id),
       });
       if (!users || users.length === 0) {
         console.log("Aucun utilisateur trouvé pour le centre de santé référé.");
@@ -119,15 +187,28 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
         schema,
         knex: database,
       });
+      console.log("[following.items.create] Notification service ready", {
+        item: meta?.key,
+      });
 
       for (const user of users) {
-        await notificationsService.createOne({
+        console.log("[following.items.create] Creating notification", {
+          recipient: user?.id,
+          recipientEmail: user?.email,
+          collection: "patientreference",
+          item: meta?.key,
+        });
+        const notificationId = await notificationsService.createOne({
           recipient: user.id,
           subject: "Nouvelle référence de patient",
           message: `Suivi de patient a été créée pour votre centre de santé.`,
           collection: "patientreference",
           item: meta.key,
           status: "inbox",
+        });
+        console.log("[following.items.create] Notification created", {
+          notificationId,
+          recipient: user?.id,
         });
         // ${payload.householdmemberid.first_name} ${payload.householdmemberid.last_name} !
         const htmlTemplate = `
@@ -163,6 +244,10 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
             </div>
           `;
         const mailService = new MailService({ schema, accountability: null });
+        console.log("[following.items.create] Sending email", {
+          to: user?.email,
+          dashboardUrl: `${env.DASHBOARD_URL}/admin/patient/${payloadData.householdmemberid}`,
+        });
         await mailService.send({
           to: user.email,
           subject: "Nouvelle référence de patient - Plateforme Clinic O",
@@ -171,6 +256,10 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
 
         console.log(`Email de référence envoyé à ${user.email}`);
       }
+      console.log("[following.items.create] Flow completed", {
+        item: meta?.key,
+        recipientsCount: users?.length || 0,
+      });
       return payloadData;
     } catch (error) {
       console.error("Erreur référence email:", error);
