@@ -6,10 +6,7 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
       event: meta?.event,
     });
     const payloadData = meta.payload;
-    console.log("[patientreference.items.create] Payload extracted", {
-      referedcenter: payloadData?.referedcenter,
-      householdmemberid: payloadData?.householdmemberid,
-    });
+    console.log("[patientreference.items.create] Payload extracted", payloadData);
     // const { services, getSchema, env, database } = context;
     const { ItemsService, MailService } = services;
     try {
@@ -135,11 +132,7 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
     const doctorID = 'ccb278ca-1a4f-4605-9962-cf1a8ccbfb84';
     const ICPID = '8be2755a-b306-427b-ad6c-1509b422abe5';
     const payloadData = meta.payload;
-    console.log("[following.items.create] Payload extracted", {
-      referedcenter: payloadData?.referedcenter,
-      householdmemberid: payloadData?.householdmemberid,
-      type: payloadData?.type,
-    });
+    console.log("[following.items.create] Payload extracted", payloadData);
     const REFERAL_TO_DOCTOR = 'REFERAL_TO_DOCTOR';
     const COUNTER_REFERAL_TO_AC = 'COUNTER_REFERAL_TO_AC';
     const COUNTER_REFERAL_TO_ICP = 'COUNTER_REFERAL_TO_ICP';
