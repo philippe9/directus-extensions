@@ -9,6 +9,8 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
     // const doctorID = 'ccb278ca-1a4f-4605-9962-cf1a8ccbfb84';
     // const ICPID = '8be2755a-b306-427b-ad6c-1509b422abe5';
     const payloadData = meta.payload;
+    // FollowingId + PatientID to ensure uniqueness for each patient follow-up 
+    const compoundKey = meta.key + "&&" + payloadData.patientid;
     console.log("[following.items.create] Payload extracted", payloadData);
     // const REFERAL_TO_DOCTOR = 'REFERAL_TO_DOCTOR';
     // const COUNTER_REFERAL_TO_AC = 'COUNTER_REFERAL_TO_AC';
@@ -71,7 +73,7 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
           recipient: user?.id,
           recipientEmail: user?.email,
           collection: "patientreference",
-          item: meta?.key,
+          item: compoundKey,
         });
         const notificationId = await notificationsService.createOne({
           recipient: user.id,
@@ -79,7 +81,7 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
           message: `Suivi de patient a été créée pour votre centre de santé.`,
           collection: "patientreference",
           // FollowingId + PatientID to ensure uniqueness for each patient follow-up 
-          item: meta.key + "&&" + payloadData.patientid,
+          item: compoundKey,
           status: "inbox",
         });
         console.log("[following.items.create] Notification created", {
@@ -89,7 +91,7 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
           message: `Suivi de patient a été créée pour votre centre de santé.`,
           collection: "patientreference",
           // FollowingId + PatientID to ensure uniqueness for each patient follow-up 
-          item: meta.key + "&&" + payloadData.patientid,
+          item: compoundKey``,
           status: "inbox",
         });
         // ${payload.householdmemberid.first_name} ${payload.householdmemberid.last_name} !
@@ -128,7 +130,7 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
         const mailService = new MailService({ schema, accountability: null });
         console.log("[following.items.create] Sending email", {
           to: user?.email,
-          dashboardUrl: `${env.DASHBOARD_URL}/admin/patient/${payloadData.householdmemberid}`,
+          dashboardUrl: `${env.DASHBOARD_URL}/admin/patient/${payloadData.patientid}`,
         });
         await mailService.send({
           to: user.email,
