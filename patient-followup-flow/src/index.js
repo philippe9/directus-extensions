@@ -84,7 +84,13 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
         });
         console.log("[following.items.create] Notification created", {
           notificationId,
-          recipient: user?.id,
+          recipient: user.id,
+          subject: "Nouvelle référence de patient",
+          message: `Suivi de patient a été créée pour votre centre de santé.`,
+          collection: "patientreference",
+          // FollowingId + PatientID to ensure uniqueness for each patient follow-up 
+          item: meta.key + "&&" + payloadData.patientid,
+          status: "inbox",
         });
         // ${payload.householdmemberid.first_name} ${payload.householdmemberid.last_name} !
         const htmlTemplate = `
