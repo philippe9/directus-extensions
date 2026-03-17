@@ -91,7 +91,7 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
           message: `Suivi de patient a été créée pour votre centre de santé.`,
           collection: "patientreference",
           // FollowingId + PatientID to ensure uniqueness for each patient follow-up 
-          item: compoundKey``,
+          item: compoundKey,
           status: "inbox",
         });
         // ${payload.householdmemberid.first_name} ${payload.householdmemberid.last_name} !
@@ -117,7 +117,7 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
                   ou en cliquant sur le lien suivant :
                 </p>
                 <div style="text-align: center; margin: 30px 0">
-                  <h3><a href="${env.DASHBOARD_URL}/admin/patient/${payloadData.householdmemberid}">Lien vers le patient</a></h3>
+                  <h3><a href="${env.DASHBOARD_URL}/admin/patient/${payloadData.patientid}">Lien vers le patient</a></h3>
                 </div>
                 
                 <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0" />
