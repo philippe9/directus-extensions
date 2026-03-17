@@ -128,14 +128,14 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
       collection: meta?.collection,
       event: meta?.event,
     });
-    const ACSID = '59cfe258-dd36-424f-8952-8c930a7f5625';
-    const doctorID = 'ccb278ca-1a4f-4605-9962-cf1a8ccbfb84';
-    const ICPID = '8be2755a-b306-427b-ad6c-1509b422abe5';
+    // const ACSID = '59cfe258-dd36-424f-8952-8c930a7f5625';
+    // const doctorID = 'ccb278ca-1a4f-4605-9962-cf1a8ccbfb84';
+    // const ICPID = '8be2755a-b306-427b-ad6c-1509b422abe5';
     const payloadData = meta.payload;
     console.log("[following.items.create] Payload extracted", payloadData);
-    const REFERAL_TO_DOCTOR = 'REFERAL_TO_DOCTOR';
-    const COUNTER_REFERAL_TO_AC = 'COUNTER_REFERAL_TO_AC';
-    const COUNTER_REFERAL_TO_ICP = 'COUNTER_REFERAL_TO_ICP';
+    // const REFERAL_TO_DOCTOR = 'REFERAL_TO_DOCTOR';
+    // const COUNTER_REFERAL_TO_AC = 'COUNTER_REFERAL_TO_AC';
+    // const COUNTER_REFERAL_TO_ICP = 'COUNTER_REFERAL_TO_ICP';
     // const { services, getSchema, env, database } = context;
     const { ItemsService, MailService } = services;
     try {
@@ -146,17 +146,20 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
         accountability: context.accountability || null,
       });
       const referenceCenter = payloadData.referedcenter;
-      let roleID = '';
-      if (payloadData.type === REFERAL_TO_DOCTOR) {
-        roleID = doctorID;
-      } else if (payloadData.type === COUNTER_REFERAL_TO_AC) {
-        roleID = ACSID;
-      } else if (payloadData.type === COUNTER_REFERAL_TO_ICP) {
-        roleID = ICPID;
-      }
+      // let roleID = '';
+      // if (payloadData.type === REFERAL_TO_DOCTOR) {
+      //   roleID = doctorID;
+      // } else if (payloadData.type === COUNTER_REFERAL_TO_AC) {
+      //   roleID = ACSID;
+      // } else if (payloadData.type === COUNTER_REFERAL_TO_ICP) {
+      //   roleID = ICPID;
+      // }
+      // WorkerID = ICP
+      // WorkerIDReferedTo = Doctor
+      // ReferedBy = ACS
       console.log("[following.items.create] Recipient targeting resolved", {
         referenceCenter,
-        roleID,
+        // roleID,
         type: payloadData?.type,
       });
       // Trouver les utilisateurs cible
@@ -164,7 +167,9 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
         filter: {
           health_center: { _eq: referenceCenter },
           _or: [
-            { role: { _eq: roleID } },
+            { id: { _eq: payloadData.workerId } },
+            { id: { _eq: payloadData.workerIdReferedTo } },
+            { id: { _eq: payloadData.referedby } },
           ],
         },
       });
@@ -196,7 +201,8 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
           subject: "Nouvelle référence de patient",
           message: `Suivi de patient a été créée pour votre centre de santé.`,
           collection: "patientreference",
-          item: meta.key,
+          // FollowingId + PatientID to ensure uniqueness for each patient follow-up 
+          item: meta.key + "&&" + payloadData.patientid,
           status: "inbox",
         });
         console.log("[following.items.create] Notification created", {
