@@ -6,6 +6,8 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
       event: meta?.event,
     });
     const payloadData = meta.payload;
+    //householdmemberid
+    const compoundKey = meta.key + "&&" + payloadData.householdmemberid;
     console.log("[patientreference.items.create] Payload extracted", payloadData);
     // const { services, getSchema, env, database } = context;
     const { ItemsService, MailService } = services;
@@ -44,7 +46,7 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
         knex: database,
       });
       console.log("[patientreference.items.create] Notification service ready", {
-        item: meta?.key,
+        item: compoundKey,
       });
 
       for (const user of users) {
@@ -52,14 +54,14 @@ export default ({ action }, { services, exceptions, database, getSchema, env }) 
           recipient: user?.id,
           recipientEmail: user?.email,
           collection: "patientreference",
-          item: meta?.key,
+          item: compoundKey,
         });
         const notificationId = await notificationsService.createOne({
           recipient: user.id,
           subject: "Nouvelle référence de patient",
           message: `Référence de patient a été créée pour votre centre de santé.`,
           collection: "patientreference",
-          item: meta.key,
+          item: compoundKey,
           status: "inbox",
         });
         console.log("[patientreference.items.create] Notification created", {
